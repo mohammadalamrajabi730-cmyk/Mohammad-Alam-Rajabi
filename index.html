@@ -1,1 +1,102 @@
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>صرافی محمد علم رجبی</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;padding:16px;color:#123}
+header{background:#075e54;color:white;padding:20px;text-align:center;border-radius:12px}
+section{background:white;padding:16px;margin-top:14px;border-radius:12px}
+input,select,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:7px;font-size:16px}
+button{background:#075e54;color:white;border:0;font-weight:bold}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #ddd;padding:8px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+<h2>صرافی محمد علم رجبی</h2>
+<p>سیستم ثبت تبادلات و حواله‌ها</p>
+</header>
+
+<section>
+<h3>ثبت تبادله جدید</h3>
+<label>نوع معامله</label>
+<select id="type">
+<option>تبادله نقدی</option>
+<option>حواله</option>
+</select>
+<label>نام مشتری</label>
+<input id="customer" placeholder="نام مشتری">
+<label>ارز</label>
+<select id="currency">
+<option>AFN</option><option>USD</option>
+<option>PKR</option><option>EUR</option>
+</select>
+<label>مقدار</label>
+<input id="amount" type="number" min="0" placeholder="مقدار پول">
+<label>نرخ تبادله</label>
+<input id="rate" type="number" min="0" step="any" placeholder="نرخ">
+<label>یادداشت</label>
+<input id="note" placeholder="توضیحات">
+<button onclick="addTrade()">ثبت معامله</button>
+</section>
+
+<section>
+<h3>گزارش معاملات</h3>
+<p>تعداد معاملات: <strong id="count">0</strong></p>
+<button onclick="downloadCSV()">دانلود گزارش CSV</button>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>مشتری</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</section>
+
+<script>
+let trades=[];
+function addTrade(){
+const customer=document.getElementById('customer').value.trim();
+const amount=Number(document.getElementById('amount').value);
+const rate=Number(document.getElementById('rate').value);
+if(!customer||amount<=0||rate<=0){
+alert('لطفاً نام مشتری، مقدار و نرخ معتبر وارد کنید.');
+return;
+}
+const trade={
+customer,
+type:document.getElementById('type').value,
+currency:document.getElementById('currency').value,
+amount,rate
+};
+trades.push(trade);
+const row=document.createElement('tr');
+[trade.customer,trade.type,trade.currency,trade.amount,trade.rate].forEach(value=>{
+const cell=document.createElement('td');
+cell.textContent=value;
+row.appendChild(cell);
+});
+document.getElementById('rows').appendChild(row);
+document.getElementById('count').textContent=trades.length;
+document.getElementById('customer').value='';
+document.getElementById('amount').value='';
+document.getElementById('rate').value='';
+document.getElementById('note').value='';
+}
+function downloadCSV(){
+if(!trades.length){alert('هنوز معامله‌ای ثبت نشده است.');return;}
+const lines=[['مشتری','نوع','ارز','مقدار','نرخ'],...trades.map(t=>[t.customer,t.type,t.currency,t.amount,t.rate])];
+const csv='\uFEFF'+lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download='transactions.csv';a.click();
+URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
+```
 
