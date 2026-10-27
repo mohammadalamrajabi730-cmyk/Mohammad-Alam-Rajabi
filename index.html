@@ -46,7 +46,7 @@ small{color:#475569}.tablewrap{overflow-x:auto}
 </section>
 <section>
 <h3>فهرست معاملات همان روز</h3>
-<div class="tablewrap"><table><thead><tr><th>ساعت</th><th>مشتری</th><th>نام پدر</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th><th>یادداشت</th><th>عملیات</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>ویرایش</th><th>ساعت</th><th>مشتری</th><th>نام پدر</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th><th>یادداشت</th></tr></thead><tbody id="rows"></tbody></table></div>
 <p><button class="secondary" onclick="downloadAllCSV()">دانلود تمام معاملات</button></p>
 <button class="danger" onclick="clearAll()">پاک کردن تمام معاملات ذخیره‌شده</button>
 </section>
@@ -75,7 +75,7 @@ function render(){
  const list=selectedTrades();document.getElementById('dayCount').textContent=fmt(list.length);
  for(const c of ['AFN','USD','PKR','EUR'])document.getElementById('sum'+c).textContent=fmt(list.filter(t=>t.currency===c).reduce((s,t)=>s+Number(t.amount||0),0));
  const rows=document.getElementById('rows');rows.replaceChildren();
- list.slice().reverse().forEach(t=>{const tr=document.createElement('tr');[t.time,t.customer,t.father||'—',t.type,t.currency,fmt(t.amount),fmt(t.rate),t.note||'—'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});const action=document.createElement('td');const b=document.createElement('button');b.textContent='ویرایش';b.style.minWidth='75px';b.onclick=()=>editTrade(t.id);action.appendChild(b);tr.appendChild(action);rows.appendChild(tr);});
+ list.slice().reverse().forEach(t=>{const tr=document.createElement('tr');const action=document.createElement('td');const b=document.createElement('button');b.textContent='✏️ ویرایش';b.style.minWidth='90px';b.onclick=()=>editTrade(t.id);action.appendChild(b);tr.appendChild(action);[t.time,t.customer,t.father||'—',t.type,t.currency,fmt(t.amount),fmt(t.rate),t.note||'—'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});rows.appendChild(tr);});
 }
 function editTrade(id){const t=trades.find(x=>x.id===id);if(!t)return;editingId=id;document.getElementById('customer').value=t.customer||'';document.getElementById('father').value=t.father||'';document.getElementById('type').value=t.type;document.getElementById('currency').value=t.currency;document.getElementById('amount').value=t.amount;document.getElementById('rate').value=t.rate;document.getElementById('note').value=t.note||'';document.getElementById('saveButton').textContent='ذخیره ویرایش';document.getElementById('cancelEdit').style.display='block';window.scrollTo({top:0,behavior:'smooth'});}
 function cancelEditing(){editingId=null;document.getElementById('customer').value='';document.getElementById('father').value='';document.getElementById('amount').value='';document.getElementById('rate').value='';document.getElementById('note').value='';document.getElementById('saveButton').textContent='ثبت معامله';document.getElementById('cancelEdit').style.display='none';}
