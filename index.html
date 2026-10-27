@@ -23,6 +23,7 @@ small{color:#475569}.tablewrap{overflow-x:auto}
 <label for="type">نوع معامله</label>
 <select id="type"><option>تبادله نقدی</option><option>حواله</option></select>
 <label for="customer">نام مشتری</label><input id="customer" placeholder="نام مشتری">
+<label for="father">نام پدر مشتری</label><input id="father" placeholder="نام پدر مشتری">
 <label for="currency">ارز</label><select id="currency"><option>AFN</option><option>USD</option><option>PKR</option><option>EUR</option></select>
 <label for="amount">مقدار پول</label><input id="amount" type="number" min="0" step="any" placeholder="مقدار پول">
 <label for="rate">نرخ تبادله</label><input id="rate" type="number" min="0" step="any" placeholder="نرخ">
@@ -44,7 +45,7 @@ small{color:#475569}.tablewrap{overflow-x:auto}
 </section>
 <section>
 <h3>فهرست معاملات همان روز</h3>
-<div class="tablewrap"><table><thead><tr><th>ساعت</th><th>مشتری</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th><th>یادداشت</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>ساعت</th><th>مشتری</th><th>نام پدر</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th><th>یادداشت</th></tr></thead><tbody id="rows"></tbody></table></div>
 <p><button class="secondary" onclick="downloadAllCSV()">دانلود تمام معاملات</button></p>
 <button class="danger" onclick="clearAll()">پاک کردن تمام معاملات ذخیره‌شده</button>
 </section>
@@ -57,11 +58,12 @@ document.getElementById('reportDate').value=today();
 function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(trades));}catch(e){alert('ذخیره‌سازی مرورگر ممکن نشد. لطفاً فضای مرورگر را بررسی کنید.');}}
 function addTrade(){
  const customer=document.getElementById('customer').value.trim();
+ const father=document.getElementById('father').value.trim();
  const amount=Number(document.getElementById('amount').value), rate=Number(document.getElementById('rate').value);
  if(!customer||!Number.isFinite(amount)||amount<=0||!Number.isFinite(rate)||rate<=0){alert('لطفاً نام مشتری، مقدار و نرخ معتبر وارد کنید.');return;}
  const now=new Date();
- trades.push({id:Date.now().toString()+'-'+Math.random().toString(16).slice(2),date:today(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),customer,type:document.getElementById('type').value,currency:document.getElementById('currency').value,amount,rate,note:document.getElementById('note').value.trim()});
- persist();document.getElementById('customer').value='';document.getElementById('amount').value='';document.getElementById('rate').value='';document.getElementById('note').value='';render();alert('معامله ثبت و در این مرورگر ذخیره شد.');
+ trades.push({id:Date.now().toString()+'-'+Math.random().toString(16).slice(2),date:today(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),customer,father,type:document.getElementById('type').value,currency:document.getElementById('currency').value,amount,rate,note:document.getElementById('note').value.trim()});
+ persist();document.getElementById('customer').value='';document.getElementById('father').value='';document.getElementById('amount').value='';document.getElementById('rate').value='';document.getElementById('note').value='';render();alert('معامله ثبت و در این مرورگر ذخیره شد.');
 }
 function selectedTrades(){return trades.filter(t=>t.date===document.getElementById('reportDate').value);}
 function fmt(n){return Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:4});}
@@ -69,9 +71,9 @@ function render(){
  const list=selectedTrades();document.getElementById('dayCount').textContent=fmt(list.length);
  for(const c of ['AFN','USD','PKR','EUR'])document.getElementById('sum'+c).textContent=fmt(list.filter(t=>t.currency===c).reduce((s,t)=>s+Number(t.amount||0),0));
  const rows=document.getElementById('rows');rows.replaceChildren();
- list.slice().reverse().forEach(t=>{const tr=document.createElement('tr');[t.time,t.customer,t.type,t.currency,fmt(t.amount),fmt(t.rate),t.note||'—'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});rows.appendChild(tr);});
+ list.slice().reverse().forEach(t=>{const tr=document.createElement('tr');[t.time,t.customer,t.father||'—',t.type,t.currency,fmt(t.amount),fmt(t.rate),t.note||'—'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});rows.appendChild(tr);});
 }
-function csvFor(list){const lines=[['تاریخ','ساعت','مشتری','نوع','ارز','مقدار','نرخ','یادداشت'],...list.map(t=>[t.date,t.time,t.customer,t.type,t.currency,t.amount,t.rate,t.note||''])];const csv='\uFEFF'+lines.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='report-'+(document.getElementById('reportDate').value||today())+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function csvFor(list){const lines=[['تاریخ','ساعت','مشتری','نام پدر','نوع','ارز','مقدار','نرخ','یادداشت'],...list.map(t=>[t.date,t.time,t.customer,t.father||'',t.type,t.currency,t.amount,t.rate,t.note||''])];const csv='\uFEFF'+lines.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='report-'+(document.getElementById('reportDate').value||today())+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function downloadCSV(){const list=selectedTrades();if(!list.length){alert('برای این تاریخ معامله‌ای ثبت نشده است.');return;}csvFor(list);}
 function downloadAllCSV(){if(!trades.length){alert('هنوز معامله‌ای ثبت نشده است.');return;}csvFor(trades);}
 function clearAll(){if(!confirm('آیا مطمئن هستید که می‌خواهید تمام معاملات ذخیره‌شده در این مرورگر پاک شوند؟ این کار برگشت‌پذیر نیست.'))return;trades=[];persist();render();}
