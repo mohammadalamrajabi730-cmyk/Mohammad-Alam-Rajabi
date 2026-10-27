@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -6,97 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>صرافی محمد علم رجبی</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;padding:16px;color:#123}
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;padding:14px;color:#123}
 header{background:#075e54;color:white;padding:20px;text-align:center;border-radius:12px}
-section{background:white;padding:16px;margin-top:14px;border-radius:12px}
-input,select,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:7px;font-size:16px}
-button{background:#075e54;color:white;border:0;font-weight:bold}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{border:1px solid #ddd;padding:8px;text-align:center}
+section{background:white;padding:16px;margin-top:14px;border-radius:12px;box-shadow:0 2px 8px #0001}
+input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:7px;font-size:16px}
+button{background:#075e54;color:white;border:0;font-weight:bold;cursor:pointer}
+.secondary{background:#475569}.danger{background:#b91c1c}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #ddd;padding:8px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.stat{background:#ecfdf5;padding:12px;border-radius:8px;text-align:center}
+small{color:#475569}.tablewrap{overflow-x:auto}
 </style>
 </head>
 <body>
-<header>
-<h2>صرافی محمد علم رجبی</h2>
-<p>سیستم ثبت تبادلات و حواله‌ها</p>
-</header>
-
+<header><h2>صرافی محمد علم رجبی</h2><p>سیستم ثبت تبادلات، حواله‌ها و گزارش روزانه</p></header>
 <section>
-<h3>ثبت تبادله جدید</h3>
-<label>نوع معامله</label>
-<select id="type">
-<option>تبادله نقدی</option>
-<option>حواله</option>
-</select>
-<label>نام مشتری</label>
-<input id="customer" placeholder="نام مشتری">
-<label>ارز</label>
-<select id="currency">
-<option>AFN</option><option>USD</option>
-<option>PKR</option><option>EUR</option>
-</select>
-<label>مقدار</label>
-<input id="amount" type="number" min="0" placeholder="مقدار پول">
-<label>نرخ تبادله</label>
-<input id="rate" type="number" min="0" step="any" placeholder="نرخ">
-<label>یادداشت</label>
-<input id="note" placeholder="توضیحات">
+<h3>ثبت معامله جدید</h3>
+<label for="type">نوع معامله</label>
+<select id="type"><option>تبادله نقدی</option><option>حواله</option></select>
+<label for="customer">نام مشتری</label><input id="customer" placeholder="نام مشتری">
+<label for="currency">ارز</label><select id="currency"><option>AFN</option><option>USD</option><option>PKR</option><option>EUR</option></select>
+<label for="amount">مقدار پول</label><input id="amount" type="number" min="0" step="any" placeholder="مقدار پول">
+<label for="rate">نرخ تبادله</label><input id="rate" type="number" min="0" step="any" placeholder="نرخ">
+<label for="note">یادداشت</label><input id="note" placeholder="توضیحات (اختیاری)">
 <button onclick="addTrade()">ثبت معامله</button>
+<small>معاملات در همین مرورگر ذخیره می‌شوند؛ برای دستگاه دیگر همگام نمی‌شوند.</small>
 </section>
-
 <section>
-<h3>گزارش معاملات</h3>
-<p>تعداد معاملات: <strong id="count">0</strong></p>
-<button onclick="downloadCSV()">دانلود گزارش CSV</button>
-<div style="overflow-x:auto">
-<table>
-<thead><tr><th>مشتری</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th></tr></thead>
-<tbody id="rows"></tbody>
-</table>
+<h3>گزارش روزانه</h3>
+<label for="reportDate">تاریخ گزارش</label><input id="reportDate" type="date" onchange="render()">
+<div class="stats">
+<div class="stat">تعداد معاملات<br><strong id="dayCount">۰</strong></div>
+<div class="stat">مجموع AFN<br><strong id="sumAFN">۰</strong></div>
+<div class="stat">مجموع USD<br><strong id="sumUSD">۰</strong></div>
+<div class="stat">مجموع PKR<br><strong id="sumPKR">۰</strong></div>
+<div class="stat">مجموع EUR<br><strong id="sumEUR">۰</strong></div>
 </div>
+<p><button onclick="downloadCSV()">دانلود گزارش این روز (CSV)</button></p>
 </section>
-
+<section>
+<h3>فهرست معاملات همان روز</h3>
+<div class="tablewrap"><table><thead><tr><th>ساعت</th><th>مشتری</th><th>نوع</th><th>ارز</th><th>مقدار</th><th>نرخ</th><th>یادداشت</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p><button class="secondary" onclick="downloadAllCSV()">دانلود تمام معاملات</button></p>
+<button class="danger" onclick="clearAll()">پاک کردن تمام معاملات ذخیره‌شده</button>
+</section>
 <script>
+const STORE_KEY='mar_exchange_trades_v1';
 let trades=[];
+try{trades=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');if(!Array.isArray(trades))trades=[];}catch(e){trades=[];}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+document.getElementById('reportDate').value=today();
+function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify(trades));}catch(e){alert('ذخیره‌سازی مرورگر ممکن نشد. لطفاً فضای مرورگر را بررسی کنید.');}}
 function addTrade(){
-const customer=document.getElementById('customer').value.trim();
-const amount=Number(document.getElementById('amount').value);
-const rate=Number(document.getElementById('rate').value);
-if(!customer||amount<=0||rate<=0){
-alert('لطفاً نام مشتری، مقدار و نرخ معتبر وارد کنید.');
-return;
+ const customer=document.getElementById('customer').value.trim();
+ const amount=Number(document.getElementById('amount').value), rate=Number(document.getElementById('rate').value);
+ if(!customer||!Number.isFinite(amount)||amount<=0||!Number.isFinite(rate)||rate<=0){alert('لطفاً نام مشتری، مقدار و نرخ معتبر وارد کنید.');return;}
+ const now=new Date();
+ trades.push({id:Date.now().toString()+'-'+Math.random().toString(16).slice(2),date:today(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),customer,type:document.getElementById('type').value,currency:document.getElementById('currency').value,amount,rate,note:document.getElementById('note').value.trim()});
+ persist();document.getElementById('customer').value='';document.getElementById('amount').value='';document.getElementById('rate').value='';document.getElementById('note').value='';render();alert('معامله ثبت و در این مرورگر ذخیره شد.');
 }
-const trade={
-customer,
-type:document.getElementById('type').value,
-currency:document.getElementById('currency').value,
-amount,rate
-};
-trades.push(trade);
-const row=document.createElement('tr');
-[trade.customer,trade.type,trade.currency,trade.amount,trade.rate].forEach(value=>{
-const cell=document.createElement('td');
-cell.textContent=value;
-row.appendChild(cell);
-});
-document.getElementById('rows').appendChild(row);
-document.getElementById('count').textContent=trades.length;
-document.getElementById('customer').value='';
-document.getElementById('amount').value='';
-document.getElementById('rate').value='';
-document.getElementById('note').value='';
+function selectedTrades(){return trades.filter(t=>t.date===document.getElementById('reportDate').value);}
+function fmt(n){return Number(n||0).toLocaleString('fa-IR',{maximumFractionDigits:4});}
+function render(){
+ const list=selectedTrades();document.getElementById('dayCount').textContent=fmt(list.length);
+ for(const c of ['AFN','USD','PKR','EUR'])document.getElementById('sum'+c).textContent=fmt(list.filter(t=>t.currency===c).reduce((s,t)=>s+Number(t.amount||0),0));
+ const rows=document.getElementById('rows');rows.replaceChildren();
+ list.slice().reverse().forEach(t=>{const tr=document.createElement('tr');[t.time,t.customer,t.type,t.currency,fmt(t.amount),fmt(t.rate),t.note||'—'].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});rows.appendChild(tr);});
 }
-function downloadCSV(){
-if(!trades.length){alert('هنوز معامله‌ای ثبت نشده است.');return;}
-const lines=[['مشتری','نوع','ارز','مقدار','نرخ'],...trades.map(t=>[t.customer,t.type,t.currency,t.amount,t.rate])];
-const csv='\uFEFF'+lines.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-const url=URL.createObjectURL(blob);
-const a=document.createElement('a');a.href=url;a.download='transactions.csv';a.click();
-URL.revokeObjectURL(url);
-}
+function csvFor(list){const lines=[['تاریخ','ساعت','مشتری','نوع','ارز','مقدار','نرخ','یادداشت'],...list.map(t=>[t.date,t.time,t.customer,t.type,t.currency,t.amount,t.rate,t.note||''])];const csv='\uFEFF'+lines.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='report-'+(document.getElementById('reportDate').value||today())+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function downloadCSV(){const list=selectedTrades();if(!list.length){alert('برای این تاریخ معامله‌ای ثبت نشده است.');return;}csvFor(list);}
+function downloadAllCSV(){if(!trades.length){alert('هنوز معامله‌ای ثبت نشده است.');return;}csvFor(trades);}
+function clearAll(){if(!confirm('آیا مطمئن هستید که می‌خواهید تمام معاملات ذخیره‌شده در این مرورگر پاک شوند؟ این کار برگشت‌پذیر نیست.'))return;trades=[];persist();render();}
+render();
 </script>
 </body>
 </html>
-```
-
