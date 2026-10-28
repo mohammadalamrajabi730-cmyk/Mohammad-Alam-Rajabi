@@ -21,7 +21,7 @@ values ('rajabi730', 'THE_EXISTING_AUTH_USER_EMAIL');
 ```
 Use the exact email shown for the intended user in Supabase Auth. Do not guess it. The mapping table is not readable by browser clients.
 
-## 4. Frontend integration remains a separate step
-The current `index.html` still uses email/password auth. It must be changed to call `/functions/v1/username-login` and pass the returned session to the existing Supabase client. Do not merge this setup until the function is deployed, secrets are set, and the account mapping is verified.
+## 4. Frontend integration prepared on the feature branch
+The `index.html` on this feature branch now prompts for username/password, calls `username-login` through the Supabase client, and stores the returned session with `auth.setSession`. The live `main` branch is unchanged. The username login will not work until the function is deployed, secrets are set, and the account mapping is verified. The existing sign-up/reset functions remain in source but are no longer shown in the login panel.
 
 Important: this removes the email field from the login experience, but the underlying Supabase Auth account still has an email identity. Existing account password and any email-confirmation status remain unchanged.
